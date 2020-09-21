@@ -10,6 +10,8 @@
 #include<stdlib.h>
 #include<math.h>
 #include<string.h>
+#include<time.h>
+
 #ifndef NOGRAPHICS
 #include<unistd.h>
 #include<ncurses.h>
@@ -206,10 +208,7 @@ float oneDegree = 0.017453;
 float angle, sinAngle, cosAngle;
 float result[4][4];
 int i, j;
-float rotx[4][4]  = {1.0, 0.0, 0.0, 0.0, 
-                     0.0, 1.0, 0.0, 0.0, 
-                     0.0, 0.0, 1.0, 0.0, 
-                     0.0, 0.0, 0.0, 1.0}; 
+float rotx[4][4]  = {{1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}}; 
 
    angle = (float) rot * oneDegree;
    sinAngle = sinf(angle);
@@ -233,10 +232,7 @@ float oneDegree = 0.017453;
 float angle, sinAngle, cosAngle;
 float result[4][4];
 int i, j;
-float roty[4][4]  = {1.0, 0.0, 0.0, 0.0, 
-                     0.0, 1.0, 0.0, 0.0, 
-                     0.0, 0.0, 1.0, 0.0, 
-                     0.0, 0.0, 0.0, 1.0}; 
+float roty[4][4]  = {{1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}}; 
 
    angle = (float) rot * oneDegree;
    sinAngle = sinf(angle);
@@ -260,10 +256,10 @@ float oneDegree = 0.017453;
 float angle, sinAngle, cosAngle;
 float result[4][4];
 int i, j;
-float rotz[4][4]  = {1.0, 0.0, 0.0, 0.0, 
-                     0.0, 1.0, 0.0, 0.0, 
-                     0.0, 0.0, 1.0, 0.0, 
-                     0.0, 0.0, 0.0, 1.0}; 
+float rotz[4][4]  = {{1.0, 0.0, 0.0, 0.0}, 
+                     {0.0, 1.0, 0.0, 0.0}, 
+                     {0.0, 0.0, 1.0, 0.0}, 
+                     {0.0, 0.0, 0.0, 1.0}}; 
 
    angle = (float) rot * oneDegree;
    sinAngle = sinf(angle);
@@ -430,10 +426,17 @@ int drawCube, drawRandom;
    printf("Number of iterations %d\n", count);
 
 	/*** Start timing here ***/
+   double timeSpent = 0.0;
+   clock_t begin = clock();
 
    for(i=0; i<count; i++) {
       movePoints();
    }
+
+   clock_t end = clock();
+
+   timeSpent += (double)(end - begin) / CLOCKS_PER_SEC;
+   printf("Tiem elpased is %f seconds from graphics\n", timeSpent);
 	/*** End timing here ***/
 #endif
 
