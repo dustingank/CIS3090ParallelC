@@ -1,9 +1,4 @@
-all: data datapt task taskpt graphics graphicspt
-graphics: graphics.c
-		gcc -Wall graphics.c -lpthread -o graphics -lncurses -lm
-
-graphicspt: graphics.c
-		gcc -Wall graphics.c -g -lpthread -o graphicspt -lm -DNOGRAPHICS
+all: data datapt task taskpt
 
 data: data.c
 	gcc -Wall data.c -lpthread -o data -lncurses -lm

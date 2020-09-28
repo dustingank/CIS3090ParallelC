@@ -1,0 +1,3 @@
+As the table and graphs show in results.pdf. Data parallelism will spend much less time than sequential. However, it only happens when the data set is large enough. Further more, adding more threads doesn't guarantee less time, more threads can also make program run slower. 
+
+The task is not suitable for this problem, as the graph shows, the performance is close to sequential and with large data set, it actually spends more time than sequential.

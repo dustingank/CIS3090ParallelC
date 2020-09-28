@@ -11,6 +11,7 @@
 #include<math.h>
 #include<string.h>
 #include<time.h>
+#include<float.h>
 
 #ifndef NOGRAPHICS
 #include<unistd.h>
@@ -125,11 +126,11 @@ int i;
 
    pointArray = malloc(sizeof(float *) * pointCount);
    for(i=0; i<pointCount; i++)
-      pointArray[i] = malloc(sizeof(float) * 3);
+      pointArray[i] = malloc(sizeof(float) * 4);
 
    drawArray = malloc(sizeof(float *) * pointCount);
    for(i=0; i<pointCount; i++)
-      drawArray[i] = malloc(sizeof(float) * 3);
+      drawArray[i] = malloc(sizeof(float) * 4);
 }
 
 void cubePointArray() {
@@ -208,7 +209,10 @@ float oneDegree = 0.017453;
 float angle, sinAngle, cosAngle;
 float result[4][4];
 int i, j;
-float rotx[4][4]  = {{1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}}; 
+float rotx[4][4]  = { {1.0, 0.0, 0.0, 0.0}, 
+                         {0.0, 1.0, 0.0, 0.0}, 
+                         {0.0, 0.0, 1.0, 0.0}, 
+                         {0.0, 0.0, 0.0, 1.0}}; 
 
    angle = (float) rot * oneDegree;
    sinAngle = sinf(angle);
@@ -232,7 +236,10 @@ float oneDegree = 0.017453;
 float angle, sinAngle, cosAngle;
 float result[4][4];
 int i, j;
-float roty[4][4]  = {{1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}}; 
+float roty[4][4]  = { {1.0, 0.0, 0.0, 0.0}, 
+                         {0.0, 1.0, 0.0, 0.0}, 
+                         {0.0, 0.0, 1.0, 0.0}, 
+                         {0.0, 0.0, 0.0, 1.0}}; 
 
    angle = (float) rot * oneDegree;
    sinAngle = sinf(angle);
@@ -257,9 +264,9 @@ float angle, sinAngle, cosAngle;
 float result[4][4];
 int i, j;
 float rotz[4][4]  = {{1.0, 0.0, 0.0, 0.0}, 
-                     {0.0, 1.0, 0.0, 0.0}, 
-                     {0.0, 0.0, 1.0, 0.0}, 
-                     {0.0, 0.0, 0.0, 1.0}}; 
+                        {0.0, 1.0, 0.0, 0.0}, 
+                        {0.0, 0.0, 1.0, 0.0}, 
+                        {0.0, 0.0, 0.0, 1.0}}; 
 
    angle = (float) rot * oneDegree;
    sinAngle = sinf(angle);
@@ -312,6 +319,7 @@ int x, y;
    yRot(counter);
    counter++;
 
+
 	// transform the points using the transformation matrix
 	// store the results of the transformation in the drawing array
    for (i=0; i<pointCount; i++) {
@@ -324,6 +332,7 @@ int x, y;
 
       drawArray[i][2] *= 20;
       drawArray[i][2] += 50;
+
    }
 
 	// clears buffers before drawing screen
@@ -360,6 +369,7 @@ int drawCube, drawRandom;
 	// initialize drawing objects
    drawCube = 0;
    drawRandom = 0;
+
 
 	// read command line arguments for number of iterations 
    if (argc > 1) {
@@ -426,17 +436,18 @@ int drawCube, drawRandom;
    printf("Number of iterations %d\n", count);
 
 	/*** Start timing here ***/
-   double timeSpent = 0.0;
-   clock_t begin = clock();
+   struct timespec start, end;
+   clock_gettime(CLOCK_REALTIME, &start);
 
    for(i=0; i<count; i++) {
       movePoints();
    }
+clock_gettime(CLOCK_REALTIME, &end);
 
-   clock_t end = clock();
+double timeSpent = (end.tv_sec - start.tv_sec) +
+						(end.tv_nsec - start.tv_nsec) / 1000000000.0;
+printf("Time elpased is %f seconds from graphicspt is: \n", timeSpent);
 
-   timeSpent += (double)(end - begin) / CLOCKS_PER_SEC;
-   printf("Tiem elpased is %f seconds from graphics\n", timeSpent);
 	/*** End timing here ***/
 #endif
 

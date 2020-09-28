@@ -6,20 +6,12 @@
 */
 
 
-/*
-Name: Yizhou Wang
-ID: 1013411
-Date: September 20th
-
-This is data.c file to use data parallelism
-*/
-
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 #include<string.h>
-#include <sys/time.h>
+#include<time.h>
+#include<float.h>
 #include<pthread.h>
 
 #ifndef NOGRAPHICS
@@ -35,9 +27,6 @@ This is data.c file to use data parallelism
 	// when graphics are turned off
 #define ITERATIONS 1000
 
-   // Thread Number: 8
-#define THREADNUMBER 8
-
 	// number of points
 int pointCount;
 	// array of points before transformation
@@ -51,29 +40,27 @@ float transformArray[4][4];
 char frameBuffer[SCREENSIZE][SCREENSIZE];
 float depthBuffer[SCREENSIZE][SCREENSIZE];
 
-struct args {
+struct argStruct{
    int counter;
    long rank;
 };
-
-
 
 void vectorMult(float a[4], float b[4], float c[4][4]);
 
 
 #ifndef NOGRAPHICS
 	// maximum screen dimensions
-   int max_y = 0, max_x = 0;
+int max_y = 0, max_x = 0;
 #endif
 
 
 
 
 #ifndef NOGRAPHICS
-   int drawPoints() {
-   int c, i, j;
-   float multx, multy;
-   float point[4];
+int drawPoints() {
+int c, i, j;
+float multx, multy;
+float point[4];
 
 	// update screen maximum size
    getmaxyx(stdscr, max_y, max_x);
@@ -110,7 +97,7 @@ void vectorMult(float a[4], float b[4], float c[4][4]);
 	/* calculates the product of matrices b and c
            stores the result in matrix a */
 void matrixMult(float a[4][4], float b[4][4], float c[4][4]) {
-   int row, col, element;
+int row, col, element;
 
    for (row=0; row<4; row++) {
       for (col=0; col<4; col++) {
@@ -126,7 +113,7 @@ void matrixMult(float a[4][4], float b[4][4], float c[4][4]) {
 	/* calculates the product of vector b and matrix c
            stores the result in vector a */
 void vectorMult(float a[4], float b[4], float c[4][4]) {
-   int col, element;
+int col, element;
 
 
    for (col=0; col<4; col++) {
@@ -139,7 +126,7 @@ void vectorMult(float a[4], float b[4], float c[4][4]) {
 }
 
 void allocateArrays() {
-   int i;
+int i;
 
    pointArray = malloc(sizeof(float *) * pointCount);
    for(i=0; i<pointCount; i++)
@@ -194,8 +181,8 @@ void cubePointArray() {
 }
 
 void randomPointArray() {
-   int i;
-   float val;
+int i;
+float val;
 
    for (i=0; i<pointCount; i++) {
        val = (float) random() / 10000.0;
@@ -210,7 +197,7 @@ void randomPointArray() {
 }
 
 void initTransform() {
-   int i, j;
+int i, j;
 
    for (i=0; i<4; i++)
       for (j=0; j<4; j++)
@@ -222,11 +209,11 @@ void initTransform() {
 
 
 void xRot(int rot) {
-   float oneDegree = 0.017453;
-   float angle, sinAngle, cosAngle;
-   float result[4][4];
-   int i, j;
-   float rotx[4][4]  = { {1.0, 0.0, 0.0, 0.0},
+float oneDegree = 0.017453;
+float angle, sinAngle, cosAngle;
+float result[4][4];
+int i, j;
+float rotx[4][4]  = { {1.0, 0.0, 0.0, 0.0},
                          {0.0, 1.0, 0.0, 0.0},
                          {0.0, 0.0, 1.0, 0.0},
                          {0.0, 0.0, 0.0, 1.0}};
@@ -249,11 +236,11 @@ void xRot(int rot) {
 }
 
 void yRot(int rot) {
-   float oneDegree = 0.017453;
-   float angle, sinAngle, cosAngle;
-   float result[4][4];
-   int i, j;
-   float roty[4][4]  = { {1.0, 0.0, 0.0, 0.0},
+float oneDegree = 0.017453;
+float angle, sinAngle, cosAngle;
+float result[4][4];
+int i, j;
+float roty[4][4]  = { {1.0, 0.0, 0.0, 0.0},
                          {0.0, 1.0, 0.0, 0.0},
                          {0.0, 0.0, 1.0, 0.0},
                          {0.0, 0.0, 0.0, 1.0}};
@@ -276,11 +263,11 @@ void yRot(int rot) {
 }
 
 void zRot(int rot) {
-   float oneDegree = 0.017453;
-   float angle, sinAngle, cosAngle;
-   float result[4][4];
-   int i, j;
-   float rotz[4][4]  = {{1.0, 0.0, 0.0, 0.0},
+float oneDegree = 0.017453;
+float angle, sinAngle, cosAngle;
+float result[4][4];
+int i, j;
+float rotz[4][4]  = {{1.0, 0.0, 0.0, 0.0},
                         {0.0, 1.0, 0.0, 0.0},
                         {0.0, 0.0, 1.0, 0.0},
                         {0.0, 0.0, 0.0, 1.0}};
@@ -308,7 +295,7 @@ void translate(float x, float y, float z) {
    transformArray[3][2] = z;
 }
 
-void clearBuffers() {
+void *clearBuffers(void* arg) {
    int i, j;
 
 	// empty the frame buffer
@@ -319,23 +306,17 @@ void clearBuffers() {
          depthBuffer[i][j] = -1000.0;
       }
    }
+
+   return NULL;
 }
 
-void* movePointParallel(void* arg) {
-   long rank = (long)arg;
-   int pointCountInThread = pointCount / THREADNUMBER;
-   int startPoint = rank * pointCountInThread;
-   int endPoint = (rank + 1) * pointCountInThread - 1;
-   int i = 0;
+void *transformThePoints(void* arg) {
+   //struct argStruct *args = (struct argStruct*) arg;
+   //int counter = args->counter;
 
-
-   if (pointCount % THREADNUMBER != 0 && rank == (THREADNUMBER - 1)) {
-      endPoint += (pointCount % THREADNUMBER);
-   }
-
-   for (i = startPoint; i <= endPoint; i++) {
+   for (int i = 0; i < pointCount; i++) {
       vectorMult(drawArray[i], pointArray[i], transformArray);
-      // scale the points for curses screen resolution
+
       drawArray[i][0] *= 20;
       drawArray[i][1] *= 20;
       drawArray[i][0] += 50;
@@ -344,49 +325,17 @@ void* movePointParallel(void* arg) {
       drawArray[i][2] *= 20;
       drawArray[i][2] += 50;
    }
-
-
    return NULL;
 }
-
-void* drawScreen(void* arg) {
-   long rank = (long)arg;
-   int pointCountInThread = pointCount / THREADNUMBER;
-   int startPoint = rank * pointCountInThread;
-   int endPoint = (rank + 1) * pointCountInThread - 1;
-   int i = 0;
-   int x, y;
-
-
-   if (pointCount % THREADNUMBER != 0 && rank == (THREADNUMBER - 1)) {
-      endPoint += (pointCount % THREADNUMBER);
-   }
-
-   for (i=startPoint; i<endPoint; i++) {
-      x = (int) drawArray[i][0];
-      y = (int) drawArray[i][1];
-      if (depthBuffer[x][y] < drawArray[i][2]) {
-         if (drawArray[i][2] > 60.0)
-            frameBuffer[x][y] = 'X';
-         else if (drawArray[i][2] < 40.0)
-            frameBuffer[x][y] = '.';
-         else
-            frameBuffer[x][y] = 'o';
-         depthBuffer[x][y] = drawArray[i][2];
-      }
-   }
-
-
-   return NULL;
-
-}
-
 
 void movePoints() {
    static int counter = 1;
+   int i;
+   int x, y;
    pthread_t *threadsArray = NULL;
-   long threadID;
-   threadsArray = malloc(THREADNUMBER * sizeof(pthread_t));
+   long threadID = 0;
+   threadsArray = malloc(2 * sizeof(pthread_t));
+   struct argStruct argumment;
 
 	// initialize transformation matrix
 	// this needs to be done before the transformation is performed
@@ -398,38 +347,48 @@ void movePoints() {
    yRot(counter);
    counter++;
 
-	for (threadID = 0; threadID < THREADNUMBER; threadID++) {
-      pthread_create(&threadsArray[threadID], NULL, movePointParallel, (void*)threadID);
+
+	// transform the points using the transformation matrix
+	// store the results of the transformation in the drawing array
+
+   pthread_create(&threadsArray[0], NULL, clearBuffers, (void*)threadID);
+   // clears buffers before drawing screen
+   argumment.rank = 1;
+   argumment.counter = counter;
+   pthread_create(&threadsArray[1], NULL, transformThePoints, (void*)&argumment);
+
+
+   for (i = 0; i < 2; i++) {
+      pthread_join(threadsArray[i], NULL);
    }
 
-   for(threadID = 0; threadID < THREADNUMBER; threadID++) {
-      pthread_join(threadsArray[threadID], NULL);
-   }
-
-	// clears buffers before drawing screen
-   clearBuffers();
+   free(threadsArray);
 
 	// draw the screen
 	// adds points to the frame buffer, use depth buffer to
 	// sort points based upon distance from the viewer
+   for (i=0; i<pointCount; i++) {
+      x = (int) drawArray[i][0];
+      y = (int) drawArray[i][1];
 
-   for (threadID = 0; threadID < THREADNUMBER; threadID++) {
-      pthread_create(&threadsArray[threadID], NULL, drawScreen, (void*)threadID);
+      if (depthBuffer[x][y] < drawArray[i][2]) {
+         if (drawArray[i][2] > 60.0)
+            frameBuffer[x][y] = 'X';
+         else if (drawArray[i][2] < 40.0)
+            frameBuffer[x][y] = '.';
+         else
+            frameBuffer[x][y] = 'o';
+
+        depthBuffer[x][y] = drawArray[i][2];
+      }
    }
 
-   for(threadID = 0; threadID < THREADNUMBER; threadID++) {
-      pthread_join(threadsArray[threadID], NULL);
-   }
-
-   free(threadsArray);
 }
 
-
-
 int main(int argc, char *argv[]) {
-   int i, count;
-   int argPtr;
-   int drawCube, drawRandom;
+int i, count;
+int argPtr;
+int drawCube, drawRandom;
 
 	// set number of iterations, only used for timing tests
 	// not used in curses version
@@ -438,6 +397,7 @@ int main(int argc, char *argv[]) {
 	// initialize drawing objects
    drawCube = 0;
    drawRandom = 0;
+
 
 	// read command line arguments for number of iterations
    if (argc > 1) {
@@ -478,51 +438,50 @@ int main(int argc, char *argv[]) {
    }
 
 
-   #ifndef NOGRAPHICS
-      // initialize ncurses
-      initscr();
-      noecho();
-      cbreak();
-      timeout(0);
-      curs_set(FALSE);
-      // Global var `stdscr` is created by the call to `initscr()`
-      getmaxyx(stdscr, max_y, max_x);
-   #endif
+#ifndef NOGRAPHICS
+	// initialize ncurses
+   initscr();
+   noecho();
+   cbreak();
+   timeout(0);
+   curs_set(FALSE);
+     // Global var `stdscr` is created by the call to `initscr()`
+   getmaxyx(stdscr, max_y, max_x);
+#endif
 
 
-      // draw and move points using ncurses
-      // do not calculate timing in this loop, ncurses will reduce performance
-   #ifndef NOGRAPHICS
-      while(1) {
-         if (drawPoints() == 1) break;
-         movePoints();
-      }
-   #endif
+	// draw and move points using ncurses
+	// do not calculate timing in this loop, ncurses will reduce performance
+#ifndef NOGRAPHICS
+   while(1) {
+      if (drawPoints() == 1) break;
+      movePoints();
+   }
+#endif
 
 	// calculate movement of points but do not use ncurses to draw
-   #ifdef NOGRAPHICS
-      printf("Number of iterations %d\n", count);
+#ifdef NOGRAPHICS
+   printf("Number of iterations %d\n", count);
 
-      /*** Start timing here ***/
-      struct timespec start, end;
-      clock_gettime(CLOCK_REALTIME, &start);
+	/*** Start timing here ***/
+   struct timespec start, end;
+   clock_gettime(CLOCK_REALTIME, &start);
 
-      for(i=0; i<count; i++) {
-         movePoints();
-      }
+   for(i=0; i<count; i++) {
+      movePoints();
+   }
+clock_gettime(CLOCK_REALTIME, &end);
 
-      /*** End timing here ***/
-      clock_gettime(CLOCK_REALTIME, &end);
-
-      double timeSpent = (end.tv_sec - start.tv_sec) +
+double timeSpent = (end.tv_sec - start.tv_sec) +
 						(end.tv_nsec - start.tv_nsec) / 1000000000.0;
+printf("Time elpased is %f seconds from task parallism is: \n", timeSpent);
 
-      printf("Time elpased is %f seconds from parallelism is: \n", timeSpent);
-   #endif
+	/*** End timing here ***/
+#endif
 
-   #ifndef NOGRAPHICS
-      // shut down ncurses
-      endwin();
-   #endif
+#ifndef NOGRAPHICS
+	// shut down ncurses
+   endwin();
+#endif
 
 }

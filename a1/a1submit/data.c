@@ -398,6 +398,8 @@ void movePoints() {
    yRot(counter);
    counter++;
 
+   // run first loop in parallel
+
 	for (threadID = 0; threadID < THREADNUMBER; threadID++) {
       pthread_create(&threadsArray[threadID], NULL, movePointParallel, (void*)threadID);
    }
@@ -412,7 +414,7 @@ void movePoints() {
 	// draw the screen
 	// adds points to the frame buffer, use depth buffer to
 	// sort points based upon distance from the viewer
-
+   // run second loop parallel
    for (threadID = 0; threadID < THREADNUMBER; threadID++) {
       pthread_create(&threadsArray[threadID], NULL, drawScreen, (void*)threadID);
    }
