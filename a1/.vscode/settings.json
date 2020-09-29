@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "__threading_support": "c",
+        "type_traits": "c",
+        "__locale": "c",
+        "chrono": "c"
+    }
+}
