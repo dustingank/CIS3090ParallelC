@@ -1,3 +1,10 @@
+/*
+Name: Yizhou Wang
+ID: 1013411
+Date: Octtober 10th 2020
+Description: A2, pool.c file
+*/
+
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -36,11 +43,11 @@ int numThreadsIdle;
 	// manages the threads, extracts task from queue and has thread
 	// run the task, makes threads wait when no tasks to run
 void * emptyTask(void *r) {
-long rank = (long) r;
-	// used to store function pointer which was copied from queue
-void *(*fn)(void) = NULL;
-	// identifies if the current thread is locked, only changes by that thread
-int threadLocked = 0;
+	long rank = (long) r;
+		// used to store function pointer which was copied from queue
+	void *(*fn)(void) = NULL;
+		// identifies if the current thread is locked, only changes by that thread
+	int threadLocked = 0;
 
 
 	// continuously loop until progam exits
@@ -99,8 +106,9 @@ void init(long numberThreads, int qsize) {
 
 	// allocate queue structure and initialize head, tail, length of queue,
 	//    and number of items currently in queue  variables
+	queue = (struct queue_t*)malloc(sizeof(struct queue_t) * qsize);
 
-
+	
 	// initialize lock and condition for the queue structure
 
 
@@ -108,13 +116,16 @@ void init(long numberThreads, int qsize) {
 
 
 	// initialize thread pool struct
-
+	poolStruct = (struct threadpool_t*) malloc (sizeof(struct threadpool_t));
 
 	// set the number of threads variable in the pool struct
-
+	poolStruct->count = (long) numberThreads;
 
 	// create array of threads (in the struct) and have each thread
 	// execute emptyTask()
+	for (int index = 0; index < numberThreads; index++) {
+		// do something here
+	}
 
 }
 
@@ -153,16 +164,16 @@ void *task1(void) {
 
 
 int main(int argc, char *argv[]) {
-int i;
-	// variable used to read command line args
-long tcount;
-int tasks, qsize;
-int argPtr;
+	int i;
+		// variable used to read command line args
+	long tcount;
+	int tasks, qsize;
+	int argPtr;
 
 	// set number of threads, tasks, and size of queue
-   tcount = 4;
-   tasks = 10;
-   qsize = 100;
+	tcount = 4;
+	tasks = 10;
+	qsize = 100;
 
 	// read command line arguments for number of iterations 
    if (argc > 1) {
