@@ -1,27 +1,38 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
-struct location {
+typedef struct location {
     int x;
     int y;
-};
+}location;
+
+typedef struct LinkedList {
+    location index;
+    struct LinkedList *next;
+} node;
 
 void showMaze(char *, int);
 int updateMaze(char *, int, int, int, char);
-void push(struct location *, int , int, int);
+void add(node **, int , int);
+location getNode(node **, int);
 
+// start of the prgram
 int main (int argc, char* argv[]) {
 
     int mazeSize = -1;
     int argPtr = 1;
-    int count = 0;
-    int stackSize = 0;
+    int isContinue = 1;
+    int actionCounter = 0;
+    int itemAmountTracker = 1;
+    int randomNumber = 0;
 
     char *mazeArray;
 
-    struct location startIndex;
-    struct location *indexStack;
+    location startIndex;
+    node *listHead = NULL;
+    node *listPtr = NULL;
 
     if (argc > 1) {
         argPtr = 1;
@@ -48,7 +59,6 @@ int main (int argc, char* argv[]) {
 
     // allocate memory for maze and stack of index
     mazeArray = (char *)malloc(mazeSize * mazeSize * sizeof(char));
-    indexStack = (struct location*)malloc(10 * sizeof(struct location));
 
     // initialize the maze
     for (int i = 0; i < mazeSize; i++) { // initial the maze
@@ -61,45 +71,146 @@ int main (int argc, char* argv[]) {
     
     // set up the starting point
     updateMaze(mazeArray, startIndex.x, startIndex.y, mazeSize, '.');
-    push(indexStack, startIndex.x, startIndex.y, count);
-    
+    add(&listHead, startIndex.x, startIndex.y);
 
-    struct location currentIndex = startIndex;
-    
-    if (updateMaze(mazeArray, currentIndex.x + 2, currentIndex.y, mazeSize, 'U')) { 
-        count++;
-        push(indexStack, startIndex.x + 2, startIndex.y, count);
-    }
-    if ( updateMaze(mazeArray, currentIndex.x - 2, currentIndex.y, mazeSize, 'D')){
-        count++;
-        push(indexStack, startIndex.x - 2, startIndex.y, count);
-    }
-    if (updateMaze(mazeArray, currentIndex.x, currentIndex.y + 2, mazeSize, 'R')) {
-        count++;
-        push(indexStack, startIndex.x, startIndex.y + 2, count);
-    }
-    if (updateMaze(mazeArray, currentIndex.x, currentIndex.y - 2, mazeSize, 'L')) {
-        count++;
-        push(indexStack, startIndex.x, startIndex.y - 2, count);
-    }
-    
-    int stackSize = (sizeof(indexStack)) / (sizeof(struct location));
+    while (isContinue) {
+        location currentIndex;
+        if (itemAmountTracker <= 1) {
+            currentIndex = getNode(&listHead, 0);
+        } else {
+            srand (time(NULL));
+            randomNumber  = rand() % itemAmountTracker;
+            //printf("rando: %d\n", randomNumber);
+            currentIndex = getNode(&listHead, randomNumber);
 
-    for (int i = 0; i <= stackSize; i++) {
-        printf("Index: (%d, %d)\n", (indexStack + i)->x, (indexStack + i)->y);
-    }
+        }
+        itemAmountTracker--;
+        //printf("current Index: (%d, %d)\n", currentIndex.x, currentIndex.y);
+        //showMaze(mazeArray, mazeSize);
+
+        if (currentIndex.x == -2) {
+            //printf("Leave\n");
+            isContinue = 0;
+            itemAmountTracker++;
+            break;
+        }
+
+        if (updateMaze(mazeArray, currentIndex.x + 2, currentIndex.y, mazeSize, 'U')) { 
+            //printf("adding Index: (%d, %d)\n", currentIndex.x + 2, currentIndex.y);
+            add(&listHead,currentIndex.x + 2, currentIndex.y);
+            actionCounter++;
+            itemAmountTracker++;
+        }
+        if ( updateMaze(mazeArray, currentIndex.x - 2, currentIndex.y, mazeSize, 'D')){
+            //printf("adding Index: (%d, %d)\n", currentIndex.x - 2, currentIndex.y);
+            add(&listHead,currentIndex.x - 2, currentIndex.y);
+            actionCounter++;
+            itemAmountTracker++;
+        }
+        if (updateMaze(mazeArray, currentIndex.x, currentIndex.y + 2, mazeSize, 'R')) {
+            //printf("adding Index: (%d, %d)\n", currentIndex.x, currentIndex.y + 2);
+            add(&listHead,currentIndex.x, currentIndex.y + 2);
+            actionCounter++;
+            itemAmountTracker++;
+        }
+            
+        if (updateMaze(mazeArray, currentIndex.x, currentIndex.y - 2, mazeSize, 'L')) {
+            //printf("adding Index: (%d, %d)\n", currentIndex.x, currentIndex.y - 2);
+            add(&listHead,currentIndex.x, currentIndex.y - 2);
+            actionCounter++;
+            itemAmountTracker++;
+        }
+        //printf("done\n");
+
+
+    } 
+    
+    // testing and free, end of program
     showMaze(mazeArray, mazeSize);
+
+    listPtr = listHead;
+    /*
+    while (listPtr != NULL) {
+        printf("Index: (%d, %d)\n", listPtr->index.x, listPtr->index.y);
+        listPtr = listPtr->next;
+    }
+    */
+    while (listHead != NULL) {
+        node *temp = listHead;
+        listHead = listHead->next;
+        free(temp);
+    }
+
     free(mazeArray); // free the maze at end of the program
-    free(indexStack); // free the indexStack
+    printf("process 0 count: %d ss %d\n", actionCounter, itemAmountTracker);
 }
 
-void push(struct location *stackPtr, int x, int y, int index) {
-    struct location temp;
-    temp.x = x;
-    temp.y = y;
-    *(stackPtr + index) = temp;
+/** Below are all helper funcitons **/
+
+location getNode(node **headPtr, int index) {
+    int count = 0;
+    location toBeReturn;
+    node *head = *headPtr;
+    node *pre = *headPtr;
+
+    if (*headPtr == NULL) {
+        toBeReturn.x = -2;
+        toBeReturn.y = -2;
+        return toBeReturn;
+    }
+    
+    if (head->next == NULL ) {
+        toBeReturn = head->index;
+        *headPtr = NULL;
+        free(head);
+        return toBeReturn;
+    }
+
+    if (count == index) {
+        toBeReturn = head->index;
+        (*headPtr) = (*headPtr)->next;
+        free(head);
+
+        return toBeReturn;
+    }
+    
+    while (count != index) {
+        if (count == index ) {
+            break;
+        }
+        count++;
+        pre = head;
+        head = head->next;
+    }
+
+    toBeReturn = head->index;
+    pre->next = head->next;
+    free(head);
+    return toBeReturn;
 }
 
+void add(node **headPtr, int x, int y) {
+    node *newNode = (node*)malloc(sizeof(node));
+    node *last = *headPtr;
+    
+    newNode->index.x = x;
+    newNode->index.y = y;
+    newNode->next = NULL;
+
+    if(*headPtr == NULL) {
+        *headPtr = newNode;
+        //printf("new node have been add\n");
+        return;
+    }
+
+    while (last->next != NULL) {
+        last = last->next;
+    }
+
+    last->next = newNode;
+    //printf("new node have been add\n");
+    return;
+}
 
 void showMaze(char *mazePtr, int size) {
     for (int i = 0; i < size; i++) { // initial the maze
@@ -115,6 +226,11 @@ int updateMaze(char *mazePtr, int x, int y, int size, char direction) {
         return 0;
     }
 
+    char temp = *(mazePtr + x * size + y);
+    if (temp != '.') {
+        return 0;
+    }
+    
     switch(direction) {
         case 'R':
             *(mazePtr + x * size + (y - 1)) = '0'; 
