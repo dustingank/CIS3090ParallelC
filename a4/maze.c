@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+
     // allocate memory for maze and stack of index
     mazeArray = (char *)malloc(mazeSize * mazeSize * sizeof(char));
 
@@ -87,7 +88,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-     srand((unsigned)time(NULL));
+    if (seed == -1) {
+        srand((unsigned)time(NULL));
+    } else {
+        srand(seed);
+    }
+    
 
     #ifdef PARALLEL
     
